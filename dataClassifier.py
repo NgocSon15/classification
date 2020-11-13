@@ -78,11 +78,37 @@ def enhancedFeatureExtractorDigit(datum):
     features =  basicFeatureExtractorDigit(datum)
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    features = basicFeatureExtractorDigit(datum)
+    features["has_loop"] = featureLoop(datum)
 
     return features
 
+def featureLoop(datum):
+    loop = False
 
+    def dfs(x, y):
+        if x < 0 or x >= DIGIT_DATUM_WIDTH:
+            return False
+        if y < 0 or y >= DIGIT_DATUM_HEIGHT:
+            return False
+        if datum.getPixel(x, y) != 0:
+            return True
+
+        if (x, y) in visited.keys():
+            return True
+
+        visited[(x, y)] = True
+        return dfs(x - 1, y) and dfs(x + 1, y) and dfs(x, y - 1) and dfs(x, y + 1)
+
+    for x in range(DIGIT_DATUM_WIDTH):
+        for y in range(DIGIT_DATUM_HEIGHT):
+            visited = {}
+            if datum.getPixel(x, y) == 0:
+                if dfs(x, y) == True:
+                    loop = True
+                    break
+    return loop
 
 def basicFeatureExtractorPacman(state):
     """
@@ -124,7 +150,31 @@ def enhancedPacmanFeatures(state, action):
     """
     features = util.Counter()
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    successor = state.generateSuccessor(0, action) #Generate successor for current state
+    pacmanPosition = successor.getPacmanPosition()
+    closestFood = 0
+    foodList = successor.getFood().asList() #Make list of food
+    closestGhost = 0
+    ghostPosition = successor.getGhostPositions() #Find ghost positions
+
+    if not foodList:
+        pass
+    else: # Find minimum distance to food
+        closestFood = min([util.manhattanDistance(i, pacmanPosition) for i in foodList])
+    features['closestFood'] = closestFood #Designate feature name for closest food
+
+    if not ghostPosition:
+        pass
+    else: #Find minimum distance to ghost
+        closestGhost = min(util.manhattanDistance(i, pacmanPosition) for i in ghostPosition)
+    if closestGhost:
+        closestGhost = 1.0 / closestGhost
+    else:
+        closestGhost
+    features['closestGhost'] = closestGhost #Designate feature name for closest ghost
+
+    features['remainingFood'] = successor.getNumFood() #Designate feature name for remaining food
+
     return features
 
 
